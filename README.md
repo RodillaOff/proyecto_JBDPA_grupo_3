@@ -9,13 +9,10 @@ Coliseum es una aplicación desarrollada en Java como proyecto académico.
 
 - Gestión de usuarios.
 - Inicio de sesión.
-- 
 - Calendario.
 - Cronómetro.
 - Conexión con base de datos.
-- 
-- 
-- 
+
 
 ## Tecnologías utilizadas
 

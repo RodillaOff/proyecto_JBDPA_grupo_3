@@ -1,16 +1,8 @@
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'coliseo'; FLUSH PRIVILEGES;
--- Ejecutar completo en MySQL Workbench (rayo ⚡ o Ctrl+Shift+Enter)
-CREATE DATABASE IF NOT EXISTS coliseum_db;
+-- Ejecutar en MySQL Workbench, DESPUÉS de tener ya creada la tabla "usuarios"
+-- (seleccioná solo este bloque y ejecutalo con el rayo ⚡, no re-corras el script viejo entero)
+
 USE coliseum_db;
 
-DROP TABLE IF EXISTS usuarios;
-
-CREATE TABLE usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nombre_usuario VARCHAR(100) NOT NULL UNIQUE,
-    contrasena_hash VARCHAR(64) NOT NULL,
-    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 CREATE TABLE IF NOT EXISTS rutina_semanal (
     usuario_id INT NOT NULL,
     dia_semana VARCHAR(10) NOT NULL,
@@ -27,6 +19,3 @@ CREATE TABLE IF NOT EXISTS rutinas_dia (
     descripcion VARCHAR(255) NOT NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 );
-SELECT * FROM usuarios;
-SELECT * FROM rutinas_dia;
-SELECT * FROM rutina_semanal;

@@ -18,10 +18,12 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import javax.swing.*;
 
 /**
@@ -46,7 +48,7 @@ public class Coliseum extends JFrame {
         setLayout(new BorderLayout());
 
         InicioPanel inicioPanel = new InicioPanel();
-        CalendarioPanel calendarioPanel = new CalendarioPanel();
+        CalendarioPanel calendarioPanel = new CalendarioPanel(usuarioActual);
         RelojPanel relojPanel = new RelojPanel();
         CronometroPanel cronometroPanel = new CronometroPanel();
 
@@ -273,17 +275,28 @@ class CalendarioPanel extends JPanel {
     private final JLabel mesLabel;
     private final JPanel diasPanel;
     private final JPanel legendPanel;
+    private final int usuarioId;
     private final Map<LocalDate, List<String>> rutinasPorDia = new HashMap<>();
     private final Map<DayOfWeek, String> rutinaSemanal = new EnumMap<>(DayOfWeek.class);
     private final Map<DayOfWeek, String> ejerciciosPorDia = new EnumMap<>(DayOfWeek.class);
     private boolean rutinaSemanalConfigurada = false;
 
-    public CalendarioPanel() {
+    public CalendarioPanel(String usuarioActual) {
         mesActual = YearMonth.now();
+        usuarioId = ConexionBD.obtenerIdUsuario(usuarioActual);
+
+        Map<DayOfWeek, String> resumenesGuardados = ConexionBD.cargarResumenSemanal(usuarioId);
+        Map<DayOfWeek, String> ejerciciosGuardados = ConexionBD.cargarEjerciciosSemanal(usuarioId);
+        boolean yaTeniaRutina = false;
         for (DayOfWeek dia : DayOfWeek.values()) {
-            rutinaSemanal.put(dia, "");
-            ejerciciosPorDia.put(dia, "");
+            String resumen = resumenesGuardados.getOrDefault(dia, "");
+            rutinaSemanal.put(dia, resumen);
+            ejerciciosPorDia.put(dia, ejerciciosGuardados.getOrDefault(dia, ""));
+            if (!resumen.isBlank()) {
+                yaTeniaRutina = true;
+            }
         }
+        rutinaSemanalConfigurada = yaTeniaRutina;
 
         setLayout(new BorderLayout(10, 10));
         setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -473,6 +486,7 @@ class CalendarioPanel extends JPanel {
             for (DayOfWeek dia : DayOfWeek.values()) {
                 rutinaSemanal.put(dia, campos.get(dia).getText().trim());
             }
+            ConexionBD.guardarResumenSemanal(usuarioId, rutinaSemanal);
             actualizarLegendSemanal();
             dialogo.dispose();
         });
@@ -520,6 +534,7 @@ class CalendarioPanel extends JPanel {
 
         guardarBtn.addActionListener(e -> {
             ejerciciosPorDia.put(dia, areaTexto.getText());
+            ConexionBD.guardarEjerciciosDia(usuarioId, dia, areaTexto.getText());
             actualizarLegendSemanal();
             dialogo.dispose();
         });
@@ -551,9 +566,10 @@ class CalendarioPanel extends JPanel {
         }
 
         LocalDate hoy = LocalDate.now();
+        Set<LocalDate> fechasConRutina = ConexionBD.cargarFechasConRutina(usuarioId, mesActual);
         for (int dia = 1; dia <= mesActual.lengthOfMonth(); dia++) {
             LocalDate fecha = mesActual.atDay(dia);
-            boolean tieneRutina = rutinasPorDia.containsKey(fecha) && !rutinasPorDia.get(fecha).isEmpty();
+            boolean tieneRutina = fechasConRutina.contains(fecha);
 
             // Se cambia el color del punto de rutina para que contraste en el tema oscuro
             JButton diaBoton = new JButton(tieneRutina
@@ -593,7 +609,7 @@ class CalendarioPanel extends JPanel {
     }
 
     private void mostrarDialogoRutina(LocalDate fecha) {
-        List<String> rutinas = rutinasPorDia.computeIfAbsent(fecha, k -> new ArrayList<>());
+        List<String> rutinas = rutinasPorDia.computeIfAbsent(fecha, k -> ConexionBD.cargarRutinasDeFecha(usuarioId, fecha));
 
         JDialog dialogo = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Rutina del día", true);
         dialogo.setSize(380, 420);
@@ -675,6 +691,7 @@ class CalendarioPanel extends JPanel {
                 rutinas.add(texto);
                 modelo.addElement(texto);
                 campoTexto.setText("");
+                ConexionBD.agregarRutinaDeFecha(usuarioId, fecha, texto);
                 actualizarCalendario();
             }
         });
@@ -683,8 +700,10 @@ class CalendarioPanel extends JPanel {
         quitarBtn.addActionListener(e -> {
             int indice = lista.getSelectedIndex();
             if (indice != -1) {
+                String textoAEliminar = modelo.get(indice);
                 rutinas.remove(indice);
                 modelo.remove(indice);
+                ConexionBD.eliminarRutinaDeFecha(usuarioId, fecha, textoAEliminar);
                 actualizarCalendario();
             }
         });
@@ -934,6 +953,162 @@ class ConexionBD {
             stmt.setString(2, hashearContrasena(contrasenaPlano));
             stmt.executeUpdate();
             return true;
+        }
+    }
+
+    /** Devuelve el id numérico de un usuario a partir de su nombre, o -1 si no existe / hubo error. */
+    static int obtenerIdUsuario(String nombreUsuario) {
+        String sql = "SELECT id FROM usuarios WHERE nombre_usuario = ?";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setString(1, nombreUsuario);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("id");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /** Carga el resumen corto de la rutina semanal de un usuario (día -> texto). */
+    static Map<DayOfWeek, String> cargarResumenSemanal(int usuarioId) {
+        Map<DayOfWeek, String> resultado = new EnumMap<>(DayOfWeek.class);
+        String sql = "SELECT dia_semana, resumen FROM rutina_semanal WHERE usuario_id = ?";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    DayOfWeek dia = DayOfWeek.valueOf(rs.getString("dia_semana"));
+                    resultado.put(dia, rs.getString("resumen"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultado;
+    }
+
+    /** Carga el bloc de notas de ejercicios de la rutina semanal de un usuario (día -> texto). */
+    static Map<DayOfWeek, String> cargarEjerciciosSemanal(int usuarioId) {
+        Map<DayOfWeek, String> resultado = new EnumMap<>(DayOfWeek.class);
+        String sql = "SELECT dia_semana, ejercicios FROM rutina_semanal WHERE usuario_id = ?";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    DayOfWeek dia = DayOfWeek.valueOf(rs.getString("dia_semana"));
+                    String ejercicios = rs.getString("ejercicios");
+                    resultado.put(dia, ejercicios == null ? "" : ejercicios);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultado;
+    }
+
+    /** Guarda (o actualiza) el resumen corto de la rutina semanal completa de un usuario. */
+    static void guardarResumenSemanal(int usuarioId, Map<DayOfWeek, String> resumenes) {
+        String sql = "INSERT INTO rutina_semanal (usuario_id, dia_semana, resumen, ejercicios) "
+                + "VALUES (?, ?, ?, '') ON DUPLICATE KEY UPDATE resumen = VALUES(resumen)";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            for (Map.Entry<DayOfWeek, String> entrada : resumenes.entrySet()) {
+                stmt.setInt(1, usuarioId);
+                stmt.setString(2, entrada.getKey().name());
+                stmt.setString(3, entrada.getValue());
+                stmt.addBatch();
+            }
+            stmt.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Guarda (o actualiza) el bloc de notas de ejercicios de un día puntual de la semana. */
+    static void guardarEjerciciosDia(int usuarioId, DayOfWeek dia, String ejercicios) {
+        String sql = "INSERT INTO rutina_semanal (usuario_id, dia_semana, resumen, ejercicios) "
+                + "VALUES (?, ?, '', ?) ON DUPLICATE KEY UPDATE ejercicios = VALUES(ejercicios)";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            stmt.setString(2, dia.name());
+            stmt.setString(3, ejercicios);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Devuelve las notas puntuales guardadas para una fecha exacta del calendario. */
+    static List<String> cargarRutinasDeFecha(int usuarioId, LocalDate fecha) {
+        List<String> resultado = new ArrayList<>();
+        String sql = "SELECT descripcion FROM rutinas_dia WHERE usuario_id = ? AND fecha = ? ORDER BY id";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            stmt.setDate(2, java.sql.Date.valueOf(fecha));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    resultado.add(rs.getString("descripcion"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultado;
+    }
+
+    /** Devuelve qué fechas de un mes tienen al menos una nota cargada (para marcarlas en el calendario). */
+    static Set<LocalDate> cargarFechasConRutina(int usuarioId, YearMonth mes) {
+        Set<LocalDate> resultado = new HashSet<>();
+        String sql = "SELECT DISTINCT fecha FROM rutinas_dia WHERE usuario_id = ? AND fecha BETWEEN ? AND ?";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            stmt.setDate(2, java.sql.Date.valueOf(mes.atDay(1)));
+            stmt.setDate(3, java.sql.Date.valueOf(mes.atEndOfMonth()));
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    resultado.add(rs.getDate("fecha").toLocalDate());
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultado;
+    }
+
+    /** Agrega una nota puntual a una fecha del calendario. */
+    static void agregarRutinaDeFecha(int usuarioId, LocalDate fecha, String descripcion) {
+        String sql = "INSERT INTO rutinas_dia (usuario_id, fecha, descripcion) VALUES (?, ?, ?)";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            stmt.setDate(2, java.sql.Date.valueOf(fecha));
+            stmt.setString(3, descripcion);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Elimina una nota puntual de una fecha (borra la primera coincidencia exacta de texto). */
+    static void eliminarRutinaDeFecha(int usuarioId, LocalDate fecha, String descripcion) {
+        String sql = "DELETE FROM rutinas_dia WHERE usuario_id = ? AND fecha = ? AND descripcion = ? LIMIT 1";
+        try (Connection con = obtenerConexion();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
+            stmt.setInt(1, usuarioId);
+            stmt.setDate(2, java.sql.Date.valueOf(fecha));
+            stmt.setString(3, descripcion);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
