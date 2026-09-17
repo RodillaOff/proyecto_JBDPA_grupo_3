@@ -1,1 +1,0 @@
-{ "version": "0.2.0", "configurations": [ { "type": "java", "name": "Coliseum (con MySQL)", "request": "launch", "mainClass": "Coliseum", "classPaths":  [ "${auto}", "${workspaceFolder}/lib/mysql-connector-j-26.7.0.jar" ] } ] }
