@@ -3,83 +3,536 @@
 ```mermaid
 
 classDiagram
+
     direction TB
 
-    %% --- Capa de Presentación (UI) ---
+
+
+    class JFrame
+
+    class JDialog
+
+    class JPanel
+
+    class JButton
+
+    class DocumentFilter
+
+
+
     class Coliseum {
-        +main(args)$
-        +iniciarInterfaz()
+
+        -notificacionesPanel NotificacionesPanel
+
+        -irANotificaciones Runnable
+
+        -avisoBandejaMostrado boolean
+
+        -ventanaActiva$ Coliseum
+
+        -loginActivo$ LoginDialog
+
+        +Coliseum(usuarioActual)
+
+        +main(args)$ void
+
+        +iniciarInterfaz(salirSiCancela)$ void
+
+        +mostrarOAbrir()$ void
+
+        -traerAlFrente(ventana)$ void
+
+        -ofrecerActivarNotificaciones() void
+
+        -configurarSegundoPlano(usuarioActual) void
+
+        -actualizarSeleccion(botones, activo) void
+
     }
+
+
+
     class LoginDialog {
-        +isAutenticado()
-        +getUsuarioActual()
-    }
-    class InicioPanel
-    class CalendarioPanel
-    class RelojPanel
-    class CronometroPanel
-    class NotificacionesPanel
 
-    %% --- Capa de Servicios y Configuración ---
+        -autenticado boolean
+
+        -usuarioActual String
+
+        -intentarLogin() void
+
+        -intentarRegistro() void
+
+        -construirPanelLogin() JPanel
+
+        -construirPanelRegistro() JPanel
+
+        +isAutenticado() boolean
+
+        +getUsuarioActual() String
+
+    }
+
+
+
+    class BotonNav {
+
+        -seleccionado boolean
+
+        +setSeleccionado(valor) void
+
+    }
+
+
+
+    class InicioPanel {
+
+        -fraseActual String
+
+        -fraseLabel JLabel
+
+        -formatearFrase(frase) String
+
+    }
+
+
+
+    class CalendarioPanel {
+
+        -mesActual YearMonth
+
+        -usuarioId int
+
+        -rutinasPorDia Map
+
+        -rutinaSemanal Map
+
+        -ejerciciosPorDia Map
+
+        -horasPorDia Map
+
+        +mostrarConfiguracionSemanalSiHaceFalta() void
+
+        -mostrarConfiguracionSemanal() void
+
+        -mostrarBlocDeNotas(dia) void
+
+        -actualizarLegendSemanal() void
+
+        -actualizarCalendario() void
+
+        -mostrarDialogoRutina(fecha) void
+
+    }
+
+
+
+    class RelojPanel {
+
+        -horaLabel JLabel
+
+        -fechaLabel JLabel
+
+        -actualizarHora() void
+
+    }
+
+
+
+    class CronometroPanel {
+
+        -tiempoInicio long
+
+        -tiempoAcumulado long
+
+        -corriendo boolean
+
+        -timer Timer
+
+        -actualizarTiempo() void
+
+    }
+
+
+
+    class NotificacionesPanel {
+
+        -usuarioId int
+
+        -estadoLabel JLabel
+
+        -detalleLabel JLabel
+
+        +sinElegir() boolean
+
+        +activar() void
+
+        -desactivar() void
+
+        -probar() void
+
+        -abrirAjustes() void
+
+        -actualizar() void
+
+        -mostrarDetalle(windowsPermite) void
+
+    }
+
+
+
+    class FiltroHora {
+
+        +replace(fb, offset, longitud, texto, attr) void
+
+        +formatear(bruto)$ String
+
+    }
+
+
+
+    class Frases {
+
+        +TODAS String[]
+
+        +aleatoria()$ String
+
+        +aleatoria(evitar)$ String
+
+    }
+
+
+
+    class Logo {
+
+        -iconos List
+
+        +aplicar(ventana)$ void
+
+        +paraBandeja(tam)$ Image
+
+        +escalar(img, lado)$ Image
+
+    }
+
+
+
+    class BotonEstilo {
+
+        +crear(texto)$ JButton
+
+        +crear(texto, fondo, colorTexto)$ JButton
+
+    }
+
+
+
+    class Tema {
+
+        +FONDO Color
+
+        +FONDO_SECUNDARIO Color
+
+        +FONDO_DIAS Color
+
+        +TEXTO Color
+
+        +ACCENT Color
+
+        +aplicar()$ void
+
+    }
+
+
+
     class Recordatorios {
-        +iniciar(usuarioId)$
-        +revisar()$
-    }
-    class Config {
-        +cargar()$ Config
-    }
-    class InstanciaUnica {
-        +adquirir()$ boolean
+
+        -planificador ScheduledExecutorService
+
+        +iniciar(usuarioId)$ void
+
+        +revisar(ahora, usuarioIdFiltro, simulacion)$ void
+
+        +estaEnVentana(ahora, entreno, minutosAntes, ventanaMinutos)$ boolean
+
+        +cuandoTexto(ahora, entreno)$ String
+
+        +esDiaDeEntreno(texto)$ boolean
+
+        +manejarArgumentos(args)$ boolean
+
+        +tomarInstanciaUnica()$ boolean
+
+        +lanzarServicioIndependiente()$ boolean
+
+        +reiniciarAvisosEnMemoria()$ void
+
+        +registrar(mensaje)$ void
+
+        -planDeHoy(usuarioId, fecha)$ Plan
+
+        -reclamar(usuarioId, fecha, canal)$ boolean
+
+        -liberar(usuarioId, fecha, canal)$ void
+
+        -limpiarAvisosViejos(antesDe)$ void
+
     }
 
-    %% --- Capa de Datos ---
-    class ConexionBD {
-        +obtenerConexion()$
-        +validarCredenciales()
-        +cargarResumenSemanal()
-        +guardarEjerciciosDia()
+
+
+    class Config {
+
+        +horaPorDefecto LocalTime
+
+        +minutosAntes int
+
+        +ventanaMinutos int
+
+        +cargar()$ Config
+
     }
+
+
+
+    class Plan {
+
+        +hora LocalTime
+
+        +sesiones List
+
+    }
+
+
+
+    class Sesion {
+
+        +titulo String
+
+        +ejercicios String
+
+    }
+
+
+
+    class InstanciaUnica {
+
+        +puerto()$ int
+
+        +adquirir(alAbrir, pedirAbrir, esperaMs)$ boolean
+
+        +cerrar()$ void
+
+    }
+
+
+
+    class AvisosWindows {
+
+        +esWindows()$ boolean
+
+        +notificacionesPermitidas()$ Boolean
+
+        +parsearToastEnabled(salida)$ Boolean
+
+        +abrirAjustesDeNotificaciones()$ boolean
+
+    }
+
+
+
+    class ToastWindows {
+
+        +esWindows()$ boolean
+
+        +mostrar(titulo, mensaje)$ boolean
+
+    }
+
+
+
+    class Bandeja {
+
+        -icono TrayIcon
+
+        +disponible()$ boolean
+
+        +instalar(abrir, salir)$ boolean
+
+        +avisar(titulo, mensaje)$ boolean
+
+    }
+
+
+
+    class ConexionBD {
+
+        -asegurarEsquema()$ void
+
+        +obtenerConexion()$ Connection
+
+        +hashearContrasena(contrasena)$ String
+
+        +normalizarHora(texto)$ String
+
+        +validarCredenciales(usuario, pass)$ boolean
+
+        +registrarUsuario(usuario, pass)$ boolean
+
+        +existeUsuario(usuario)$ boolean
+
+        +obtenerIdUsuario(nombre)$ int
+
+        +obtenerNotificaciones(id)$ Boolean
+
+        +guardarNotificaciones(id, activas)$ boolean
+
+        +cargarResumenSemanal(id)$ Map
+
+        +guardarResumenSemanal(id, resumenes)$ void
+
+        +cargarHorasSemanal(id)$ Map
+
+        +guardarRutinaSemanal(id, resumenes, horas)$ void
+
+        +cargarEjerciciosSemanal(id)$ Map
+
+        +guardarEjerciciosDia(id, dia, texto)$ void
+
+        +cargarRutinasDeFecha(id, fecha)$ List
+
+        +cargarFechasConRutina(id, mes)$ Set
+
+        +agregarRutinaDeFecha(id, fecha, desc)$ void
+
+        +eliminarRutinaDeFecha(id, fecha, desc)$ void
+
+    }
+
+
+
     class MySQL_coliseum_db
 
-    %% --- Sistema, Notificaciones y Apariencia ---
-    class Bandeja {
-        +instalar()$
-        +avisar()$
-    }
-    class AvisosWindows
-    class ToastWindows
-    class Tema
-    class Frases
 
-    %% --- Relaciones UI ---
-    Coliseum "1" *-- "1" InicioPanel
-    Coliseum "1" *-- "1" CalendarioPanel
-    Coliseum "1" *-- "1" RelojPanel
-    Coliseum "1" *-- "1" CronometroPanel
-    Coliseum "1" *-- "1" NotificacionesPanel
 
-    Coliseum ..> LoginDialog : Autentica
-    Coliseum ..> InstanciaUnica : Instancia única
-    Coliseum ..> Recordatorios : Servicio fondo
+    JFrame <|-- Coliseum
 
-    %% --- Relaciones Datos y Persistencia ---
-    LoginDialog ..> ConexionBD
-    CalendarioPanel ..> ConexionBD
-    NotificacionesPanel ..> ConexionBD
-    Recordatorios ..> ConexionBD
+    JDialog <|-- LoginDialog
+
+    JButton <|-- BotonNav
+
+    JPanel <|-- InicioPanel
+
+    JPanel <|-- CalendarioPanel
+
+    JPanel <|-- RelojPanel
+
+    JPanel <|-- CronometroPanel
+
+    JPanel <|-- NotificacionesPanel
+
+    DocumentFilter <|-- FiltroHora
+
+
+
+    Coliseum "1" *-- "1" InicioPanel : contiene
+
+    Coliseum "1" *-- "1" CalendarioPanel : contiene
+
+    Coliseum "1" *-- "1" RelojPanel : contiene
+
+    Coliseum "1" *-- "1" CronometroPanel : contiene
+
+    Coliseum "1" *-- "1" NotificacionesPanel : contiene
+
+    Coliseum "1" *-- "5" BotonNav : sidebar
+
+
+
+    Coliseum ..> LoginDialog : iniciarInterfaz() lo crea
+
+    Coliseum ..> Tema : aplicar()
+
+    Coliseum ..> InstanciaUnica : main() una sola instancia
+
+    Coliseum ..> Recordatorios : segundo plano
+
+    Coliseum ..> Bandeja : icono de bandeja
+
+    Coliseum ..> Logo : icono de ventana
+
+
+
+    LoginDialog ..> ConexionBD : login y registro
+
+    CalendarioPanel ..> ConexionBD : rutinas, ejercicios y horas
+
+    NotificacionesPanel ..> ConexionBD : preferencia de avisos
+
+
+
+    InicioPanel ..> Frases
+
+    CalendarioPanel ..> FiltroHora : campo de hora
+
+
+
+    InicioPanel ..> BotonEstilo
+
+    CalendarioPanel ..> BotonEstilo
+
+    CronometroPanel ..> BotonEstilo
+
+    LoginDialog ..> BotonEstilo
+
+    NotificacionesPanel ..> BotonEstilo
+
+
+
+    LoginDialog ..> Logo
+
+
+
+    NotificacionesPanel ..> AvisosWindows : estado de Windows
+
+    NotificacionesPanel ..> Bandeja : probar aviso
+
+
+
+    Recordatorios ..> ConexionBD : usuarios, rutinas y avisos
+
+    Recordatorios ..> Config : coliseum.properties
+
+    Recordatorios ..> Frases : frase del aviso
+
+    Recordatorios ..> Bandeja : mostrarAviso
+
+    Recordatorios ..> InstanciaUnica : cerrar()
+
+    Recordatorios "1" *-- "1" Plan : planDeHoy()
+
+    Plan "1" *-- "*" Sesion
+
+
+
+    Bandeja ..> ToastWindows : notificación de Windows
+
+    Bandeja ..> Logo : icono
+
+
+
+    ConexionBD ..> Recordatorios : reiniciarAvisosEnMemoria()
+
+
+
+    BotonNav ..> Tema
+
+    BotonEstilo ..> Tema
+
+
+
     ConexionBD ..> MySQL_coliseum_db : JDBC
 
-    %% --- Relaciones Notificaciones ---
-    Recordatorios ..> Config
-    Recordatorios ..> Bandeja
-    Bandeja ..> ToastWindows
-    NotificacionesPanel ..> AvisosWindows
-
-    %% --- Estilos y Utilidades ---
-    InicioPanel ..> Frases
-    Coliseum ..> Tema
-   
-    ```
+  ```
     
 -------------------------------------------------------------------
 # CASOS DE USO
