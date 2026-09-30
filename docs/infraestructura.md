@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart TB
-    PC[" Computadora del usuario<br/>Windows"]
+    PC[" Computadora del usuario"]
 
     subgraph JVM["Java (JVM)"]
         direction TB
