@@ -1,5 +1,7 @@
 # Diagrama UML - Coliseum
+
 ```mermaid
+
 classDiagram
     direction TB
 
@@ -76,11 +78,14 @@ classDiagram
     %% --- Estilos y Utilidades ---
     InicioPanel ..> Frases
     Coliseum ..> Tema
+   
     ```
+    
 -------------------------------------------------------------------
 # CASOS DE USO
 
 ```mermaid
+
 flowchart LR
     U([" Usuario"])
     BD[(" Base de datos")]
