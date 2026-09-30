@@ -14,6 +14,7 @@ Coliseum es una aplicación desarrollada en Java como proyecto académico.
 - Reloj.
 - Conexión con base de datos.
 - Registro y almacenamiento de rutinas.
+- Sistema de recordatorios y notificaciones automáticas.
 
 ## Tecnologías utilizadas
 
@@ -26,25 +27,12 @@ Coliseum es una aplicación desarrollada en Java como proyecto académico.
 - Git
 - GitHub
 
-## Ejecución
+## Configuración y Base de Datos
 
-La aplicación puede ejecutarse mediante el archivo:
-
-`Coliseum Launcher.bat`
-
-El archivo se encarga de compilar y ejecutar la aplicación utilizando Java y el conector de MySQL.
-
-Para ejecutar correctamente la aplicación es necesario tener instalado Java y tener disponible la base de datos MySQL correspondiente.
-
-## Documentación
-
-La documentación del proyecto se encuentra en la carpeta `docs`, donde se incluyen:
-
-- Requisitos funcionales y no funcionales.
-- Stack tecnológico.
-- Diagrama UML.
-- Casos de uso.
-- Diagrama de infraestructura.
+Para el correcto funcionamiento de la aplicación con la base de datos, asegúrate de:
+- Tener un servidor MySQL corriendo (por defecto en el puerto `3306`).
+- Ejecutar previamente el script SQL provisto en el proyecto (`Coliseo Workbench.sql` o similar) para crear la base de datos `coliseum_db` y las tablas necesarias[cite: 1, 2].
+- Ajustar las credenciales de conexión en la clase correspondiente si difieren de las predeterminadas (`root` / `coliseo`).
 
 ## Integrantes
 
