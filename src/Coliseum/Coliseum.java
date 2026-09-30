@@ -16,24 +16,23 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.Normalizer;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.text.Normalizer;
 import java.time.YearMonth;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -45,11 +44,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.Set;
 import javax.swing.*;
 
 /**
@@ -160,7 +159,6 @@ public class Coliseum extends JFrame {
     public static void main(String[] args) {
         // Desactiva la aceleración gráfica por GPU de Java2D (Direct3D / OpenGL / Metal).
         // Algunos drivers de video la renderizan mal y los colores se ven saturados o cambiando solos.
-        // Debe ir antes de crear cualquier ventana. Para volver a activarla: java -Dcoliseum.gpu=true Coliseum
         if (!Boolean.getBoolean("coliseum.gpu")) {
             System.setProperty("sun.java2d.d3d", "false");
             System.setProperty("sun.java2d.opengl", "false");
