@@ -126,35 +126,38 @@ classDiagram
 
     ConexionBD ..> MySQL_coliseum_db : JDBC
   ```
-¿Quién usa la aplicación?
-El Usuario (o Deportista): Es la persona que entra a la app para organizar su entrenamiento del día a día. Usa el programa para armar su rutina de la semana, anotar recordatorios en días puntuales del calendario, tomarse los tiempos con el cronómetro y mantener su información guardada de forma segura
+-------------------------------------------------------------------
+# CASOS DE USO
 
-Funciones Principales
-Crear una cuenta: Si es la primera vez que la persona usa la app, puede registrarse eligiendo un nombre de usuario y una contraseña. El sistema revisa al instante que ese nombre no esté ocupado por otra persona para evitar duplicados
+```mermaid
+flowchart LR
+    U([" Usuario"])
+    BD[(" Base de datos")]
 
-Ingresar a la app (Login): Una vez registrado, el usuario pone sus datos para entrar. La app confirma que la contraseña sea correcta consultando la base de datos y le da la bienvenida a su panel personal
+    subgraph SIS["Sistema Coliseum"]
+        direction TB
+        UC1(["Registrarse"])
+        UC2(["Iniciar sesión"])
+        UC3(["Ver frase motivacional"])
+        UC4(["Ver calendario"])
+        UC5(["Configurar rutina semanal"])
+        UC6(["Agregar o quitar rutinas de un día"])
+        UC7(["Ver reloj"])
+        UC8(["Usar cronómetro"])
+    end
 
-Organizar la rutina de la semana: Sirve para planificar el entrenamiento diario (de lunes a domingo). El usuario puede anotar qué ejercicios le tocan cada día y dejar un resumen rápido. Todo queda guardado automáticamente para cuando vuelva a entrar
+    U --- UC1
+    U --- UC2
+    U --- UC3
+    U --- UC4
+    U --- UC5
+    U --- UC6
+    U --- UC7
+    U --- UC8
 
-Anotar notas en el calendario: Además de la rutina fija semanal, se pueden agregar notas puntuales para una fecha específica (por ejemplo, "Chequeo médico" o "Entrenamiento de fuerza el 15"). La app además resalta los días del mes que tienen notas guardadas para no pasarlas por alto
-
-Usar el cronómetro: Un reloj digital pensado para medir los tiempos de descanso o de ejercicio. Muestra hasta las décimas de segundo y tiene tres botones simples: uno para empezar a contar, otro para pausar el tiempo sin perder lo recorrido y otro para reiniciar la cuenta a cero
-
-¿Cómo funciona el inicio de sesión por dentro?
-Cuando el usuario quiere entrar a su cuenta, el proceso pasa por estos pasos:
-
-Escribe su usuario y clave en la pantalla de ingreso y toca "Iniciar Sesión" (o aprieta Enter)
-
-Para cuidar su seguridad, el programa encripta la clave ingresada antes de hacer cualquier verificación
-
-La app busca al usuario en la base de datos y revisa si la clave encriptada coincide con la que estaba guardada
-
-Si todo está en orden, se cierra la ventana de ingreso y se abre la pantalla principal con todos sus datos y rutinas cargadas
-
-¿Qué pasa si algo sale mal?
-
-Si se olvida de llenar un campo: La app le avisa con un mensaje en rojo que debe completar tanto el usuario como la clave
-
-Si le pifia a la contraseña: Aparece un aviso claro indicando que el usuario o la clave son incorrectos
-
-Si falla la conexión a la base de datos: El sistema ataja el problema sin colgarse ni cerrarse de golpe, mostrándole un aviso de error comprensible al usuario
+    UC1 --- BD
+    UC2 --- BD
+    UC4 --- BD
+    UC5 --- BD
+    UC6 --- BD
+```
