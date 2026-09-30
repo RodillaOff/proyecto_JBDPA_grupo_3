@@ -148,7 +148,7 @@ classDiagram
         coliseum_db
     }
     %% Herencia
-  
+  ```
 ¿Quién usa la aplicación?
 El Usuario (o Deportista): Es la persona que entra a la app para organizar su entrenamiento del día a día. Usa el programa para armar su rutina de la semana, anotar recordatorios en días puntuales del calendario, tomarse los tiempos con el cronómetro y mantener su información guardada de forma segura
 
