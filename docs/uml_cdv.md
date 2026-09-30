@@ -1,62 +1,154 @@
-Diagrama UML (Diagrama de Clases)
+# Diagrama UML - Coliseum
 
-<pre>
-+-------------------------------------------------------------+
-|                        ConexionBD                           |
-+-------------------------------------------------------------+
-| - URL_DB : String                                           |
-| - USUARIO_DB : String                                       |
-| - CONTRASENA_DB : String                                    |
-+-------------------------------------------------------------+
-| ~ obtenerConexion() : Connection                            |
-| ~ hashearContrasena(contrasenaPlano: String) : String       |
-| ~ validarCredenciales(usuario: String, pass: String): boolean|
-| ~ existeUsuario(usuario: String) : boolean                  |
-| ~ registrarUsuario(usuario: String, pass: String) : boolean |
-| ~ obtenerIdUsuario(nombreUsuario: String) : int             |
-| ~ cargarResumenSemanal(usuarioId: int) : Map                |
-| ~ cargarEjerciciosSemanal(usuarioId: int) : Map             |
-| ~ guardarResumenSemanal(usuarioId: int, resumenes: Map)     |
-| ~ guardarEjerciciosDia(usuarioId: int, dia: DayOfWeek, text: String) |
-| ~ cargarRutinasDeFecha(usuarioId: int, fecha: LocalDate) : List&lt;String&gt; |
-| ~ cargarFechasConRutina(usuarioId: int, mes: YearMonth) : Set&lt;LocalDate&gt; |
-| ~ agregarRutinaDeFecha(usuarioId: int, fecha: LocalDate, desc: String) |
-| ~ eliminarRutinaDeFecha(usuarioId: int, fecha: LocalDate, desc: String) |
-+-------------------------------------------------------------+
-                               ^
-                               | (invoca métodos estáticos)
-+------------------------------+------------------------------+
-|                         LoginDialog                         |
-+-------------------------------------------------------------+
-| - autenticado : boolean                                     |
-| - usuarioActual : String                                    |
-| - cardLayout : CardLayout                                   |
-| - panelCentral : JPanel                                     |
-| - campoUsuarioLogin : JTextField                            |
-| - campoContrasenaLogin : JPasswordField                     |
-| - campoUsuarioRegistro : JTextField                         |
-| - campoContrasenaRegistro : JPasswordField                  |
-+-------------------------------------------------------------+
-| + LoginDialog(padre: Frame)                                 |
-| - construirPanelLogin() : JPanel                            |
-| - construirPanelRegistro() : JPanel                         |
-| - intentarLogin() : void                                    |
-| - intentarRegistro() : void                                 |
-| + isAutenticado() : boolean                                 |
-| + getUsuarioActual() : String                               |
-+-------------------------------------------------------------+
+```mermaid
+classDiagram
+    direction TB
 
-+-------------------------------------------------------------+
-|                        BotonEstilo                          |
-+-------------------------------------------------------------+
-| ~ ACCENT : Color                                            |
-| ~ TEXTO_OSCURO : Color                                      |
-+-------------------------------------------------------------+
-| ~ crear(texto: String) : JButton                            |
-| ~ crear(texto: String, fondo: Color, textoCol: Color): JButton|
-+-------------------------------------------------------------+
-</pre>
+    class JFrame {
+        <<Swing>>
+    }
+    class JPanel {
+        <<Swing>>
+    }
+    class JButton {
+        <<Swing>>
+    }
+    class JDialog {
+        <<Swing>>
+    }
 
+    class Coliseum {
+        -actualizarSeleccion(botones: BotonNav[], activo: BotonNav) void
+        +Coliseum(usuarioActual: String)
+        +main(args: String[])$ void
+    }
+
+    class LoginDialog {
+        -autenticado: boolean
+        -usuarioActual: String
+        -cardLayout: CardLayout
+        -panelCentral: JPanel
+        -campoUsuarioLogin: JTextField
+        -campoContrasenaLogin: JPasswordField
+        -mensajeLogin: JLabel
+        -campoUsuarioRegistro: JTextField
+        -campoContrasenaRegistro: JPasswordField
+        -campoContrasenaRegistroConfirmar: JPasswordField
+        -mensajeRegistro: JLabel
+        ~LoginDialog(padre: Frame)
+        -construirPanelLogin() JPanel
+        -construirPanelRegistro() JPanel
+        -crearEtiquetaCampo(texto: String) JLabel
+        -estilizarCampo(campo: JTextField) void
+        -intentarLogin() void
+        -intentarRegistro() void
+        -mostrarError(etiqueta: JLabel, texto: String) void
+        ~isAutenticado() boolean
+        ~getUsuarioActual() String
+    }
+
+    class BotonNav {
+        -seleccionado: boolean
+        -colorNormal: Color
+        -colorHover: Color
+        -colorSeleccionado: Color
+        -textoNormal: Color
+        -textoSeleccionado: Color
+        ~BotonNav(texto: String)
+        ~setSeleccionado(valor: boolean) void
+    }
+
+    class InicioPanel {
+        -frases: String[]
+        -fraseLabel: JLabel
+        -random: Random
+        +InicioPanel()
+        -formatearFrase(frase: String) String
+    }
+
+    class CalendarioPanel {
+        -mesActual: YearMonth
+        -mesLabel: JLabel
+        -diasPanel: JPanel
+        -legendPanel: JPanel
+        -usuarioId: int
+        -rutinasPorDia: Map~LocalDate,List~String~~
+        -rutinaSemanal: Map~DayOfWeek,String~
+        -ejerciciosPorDia: Map~DayOfWeek,String~
+        -rutinaSemanalConfigurada: boolean
+        +CalendarioPanel(usuarioActual: String)
+        -nombreDia(dia: DayOfWeek) String
+        -actualizarLegendSemanal() void
+        +mostrarConfiguracionSemanalSiHaceFalta() void
+        -mostrarConfiguracionSemanal() void
+        -mostrarBlocDeNotas(dia: DayOfWeek) void
+        -actualizarCalendario() void
+        -mostrarDialogoRutina(fecha: LocalDate) void
+    }
+
+    class RelojPanel {
+        -horaLabel: JLabel
+        -fechaLabel: JLabel
+        +RelojPanel()
+        -actualizarHora() void
+    }
+
+    class CronometroPanel {
+        -tiempoInicio: long
+        -tiempoAcumulado: long
+        -corriendo: boolean
+        -tiempoLabel: JLabel
+        -timer: Timer
+        +CronometroPanel()
+        -actualizarTiempo() void
+    }
+
+    class Tema {
+        <<utility>>
+        +FONDO: Color$
+        +FONDO_SECUNDARIO: Color$
+        +FONDO_DIAS: Color$
+        +BORDE_DIAS: Color$
+        +TEXTO: Color$
+        +TEXTO_SECUNDARIO: Color$
+        +ACCENT: Color$
+        +aplicar()$ void
+    }
+
+    class BotonEstilo {
+        <<utility>>
+        ~ACCENT: Color$
+        ~TEXTO_OSCURO: Color$
+        ~crear(texto: String)$ JButton
+        ~crear(texto: String, colorFondo: Color, colorTexto: Color)$ JButton
+    }
+
+    class ConexionBD {
+        <<utility>>
+        -URL_DB: String$
+        -USUARIO_DB: String$
+        ~obtenerConexion()$ Connection
+        ~hashearContrasena(contrasenaPlano: String)$ String
+        ~validarCredenciales(usuario: String, contrasenaPlano: String)$ boolean
+        ~existeUsuario(usuario: String)$ boolean
+        ~registrarUsuario(usuario: String, contrasenaPlano: String)$ boolean
+        ~obtenerIdUsuario(nombreUsuario: String)$ int
+        ~cargarResumenSemanal(usuarioId: int)$ Map~DayOfWeek,String~
+        ~cargarEjerciciosSemanal(usuarioId: int)$ Map~DayOfWeek,String~
+        ~guardarResumenSemanal(usuarioId: int, resumenes: Map)$ void
+        ~guardarEjerciciosDia(usuarioId: int, dia: DayOfWeek, ejercicios: String)$ void
+        ~cargarRutinasDeFecha(usuarioId: int, fecha: LocalDate)$ List~String~
+        ~cargarFechasConRutina(usuarioId: int, mes: YearMonth)$ Set~LocalDate~
+        ~agregarRutinaDeFecha(usuarioId: int, fecha: LocalDate, descripcion: String)$ void
+        ~eliminarRutinaDeFecha(usuarioId: int, fecha: LocalDate, descripcion: String)$ void
+    }
+
+    class MySQL {
+        <<database>>
+        coliseum_db
+    }
+    %% Herencia
+  
 ¿Quién usa la aplicación?
 El Usuario (o Deportista): Es la persona que entra a la app para organizar su entrenamiento del día a día. Usa el programa para armar su rutina de la semana, anotar recordatorios en días puntuales del calendario, tomarse los tiempos con el cronómetro y mantener su información guardada de forma segura
 
